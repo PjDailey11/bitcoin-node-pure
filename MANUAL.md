@@ -41,7 +41,15 @@ pytest -q
 Show help:
 
 ```powershell
-btc-pure --help
+btc-pure --help   # all commands start with `btc-pure`
+```
+
+### 0) Doctor (recommended first step)
+
+This checks your Python version and whether DNS seeds are returning peers.
+
+```powershell
+btc-pure doctor --network testnet
 ```
 
 ### 1) Generate keys + addresses
@@ -77,6 +85,20 @@ Optional:
 
 ```powershell
 btc-pure broadcast-tx --network testnet --host 1.2.3.4 --port 18333 --raw-file tx.hex
+```
+
+Peer discovery helpers:
+
+```powershell
+btc-pure broadcast-tx --network testnet --list-peers
+btc-pure broadcast-tx --network testnet --peer-index 0 --dry-run --raw-hex 00
+```
+
+### 3) Txid endianness helper
+
+```powershell
+btc-pure txid to-wire   <explorer_txid_hex>
+btc-pure txid from-wire <wire_txid_le_hex>
 ```
 
 ### Why “best-effort”?

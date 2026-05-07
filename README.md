@@ -21,7 +21,7 @@ cd bitcoin-node-python
 python -m venv .venv
 .venv\Scripts\activate   # Windows
 pip install -e ".[dev]"
-btc-pure --help
+btc-pure --help   # all commands start with `btc-pure`
 ```
 
 Or without install:
@@ -39,6 +39,12 @@ python -m bitcoin_node.cli --help
 btc-pure keys
 ```
 
+- Sanity-check your environment and DNS seeding:
+
+```bash
+btc-pure doctor --network testnet
+```
+
 - Run the full test suite:
 
 ```bash
@@ -49,6 +55,11 @@ pytest -q
 
 ```bash
 btc-pure keys
+btc-pure doctor --network testnet
+btc-pure txid to-wire <explorer_txid_hex>
+btc-pure validate-hex <hex>
+btc-pure address --secret-hex <secret_hex>
+btc-pure tx-decode --raw-file tx.hex
 btc-pure broadcast-tx --network testnet --raw-file tx.hex
 ```
 
@@ -84,6 +95,11 @@ Flags:
 - `--port <int>`: override default port (8333 mainnet / 18333 testnet)
 - `--raw-hex <hex>`: provide raw tx as a hex string
 - `--raw-file <path>`: path to a file containing hex raw tx
+- `--list-peers`: print peers from DNS seeds and exit
+- `--peer-index <int>`: choose the Nth peer from DNS seeds
+- `--peer-limit <int>`: how many peers to resolve (default 16)
+- `--dry-run`: print what would happen without sending
+- `--timeout <seconds>`: connect + handshake timeout
 
 ### Broadcasting a raw transaction
 
@@ -127,6 +143,10 @@ See [`docs/RASPBERRY_PI_DEPLOYMENT.md`](docs/RASPBERRY_PI_DEPLOYMENT.md) for Ras
 ## Manual
 
 For a longer walkthrough (install → keys → building/signing a legacy tx → broadcasting), see [`MANUAL.md`](MANUAL.md).
+
+## Examples
+
+Small runnable/readable examples live in [`examples/`](examples/).
 
 ## Tests
 

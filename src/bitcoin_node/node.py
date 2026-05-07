@@ -16,8 +16,10 @@ async def relay_raw_transaction(
     host: str | None = None,
     port: int | None = None,
     relay_field: bool = False,
+    timeout: float = 20.0,
+    dry_run: bool = False,
 ) -> None:
-    """Open a connection, complete handshake, push `tx`, then idle briefly."""
+    """Open a connection, complete handshake, optionally push `tx`, then idle briefly."""
     magic = TESTNET_MAGIC if network == "testnet" else MAINNET_MAGIC
     peer = BitcoinPeer(magic=magic, relay=relay_field)
 
@@ -30,10 +32,11 @@ async def relay_raw_transaction(
     if port is None:
         port = 18333 if network == "testnet" else 8333
 
-    await peer.connect(host, port)
+    await peer.connect(host, port, timeout=timeout)
     try:
-        await peer.handshake()
-        await peer.send_tx(raw_tx)
+        await peer.handshake(timeout=timeout)
+        if not dry_run:
+            await peer.send_tx(raw_tx)
         await peer.drain_ping_pong()
     finally:
         await peer.close()
@@ -45,5 +48,7 @@ def relay_raw_transaction_sync(
     *,
     host: str | None = None,
     port: int | None = None,
+    timeout: float = 20.0,
+    dry_run: bool = False,
 ) -> None:
-    asyncio.run(relay_raw_transaction(network, raw_tx, host=host, port=port))
+    asyncio.run(relay_raw_transaction(network, raw_tx, host=host, port=port, timeout=timeout, dry_run=dry_run))
