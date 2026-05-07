@@ -1,8 +1,17 @@
 # bitcoin-node-pure
 
-Zero third-party dependencies (stdlib only): secp256k1-style ECDSA, SHA-256, RIPEMD-160, legacy P2PKH, transaction serialization, immutable UTXO-style ledger modeling, and a minimal asyncio Bitcoin P2P client for handshakes and `tx` relay.
+**Core cryptography** (ECC, hashes, legacy transactions) stays **stdlib-only** under `src/bitcoin_node/crypto/` and `core/`.
+
+The **`btc-pure` CLI** uses small dependencies for UX: **Rich** (colors + panels), **PyYAML** (`.btc-pure.yaml`), and **Questionary** (wizards and safety prompts).
 
 **Scope.** This is an engineering demonstration and learning codebase. It does **not** implement a competitive full-chain syncing node; validating every consensus rule or staying aligned with all soft forks is out of scope.
+
+## Configuration
+
+- **Environment:** `BTC_NETWORK` or `BTC_PURE_NETWORK` = `mainnet` | `testnet`
+- **Files:** `./.btc-pure.yaml` or `~/.btc-pure.yaml` (see `examples/btc-pure.example.yaml`)
+
+Default `network` and `peer_limit` apply to subcommands that define those flags.
 
 ## Layout
 
@@ -24,12 +33,24 @@ pip install -e ".[dev]"
 btc-pure --help   # all commands start with `btc-pure`
 ```
 
-Or without install:
+Or without install (requires `pip install rich pyyaml questionary` once):
 
 ```bash
 set PYTHONPATH=src
 python -m bitcoin_node.cli --help
 ```
+
+Run **`btc-pure` with no arguments** (or `btc-pure wizard`) for an interactive menu.
+
+### Newer CLI highlights
+
+| Command | Purpose |
+|--------|---------|
+| `btc-pure keys --hide-secret` | Omit secret; TTY prompts before showing secret unless `-y` |
+| `btc-pure doctor` | DNS + **TCP connect** and **version RTT** per peer |
+| `btc-pure broadcast-tx --verbose` | Print full wire frames (hex) for messages |
+| `btc-pure tx-encode` | Questionary wizard to build/sign legacy P2PKH |
+| `btc-pure cache list` | SQLite-backed local UTXO notes (`~/.btc-pure/cache.sqlite3`) |
 
 ## Quickstart (what you can do today)
 

@@ -4,6 +4,27 @@ Maintainers append dated sections after **major** milestones (features, breaking
 
 ---
 
+## 2026-05-07 — Rich CLI, config, latency probes, SQLite cache
+
+### What changed
+
+- Added runtime dependencies: **rich**, **PyYAML**, **questionary** (core crypto modules unchanged).
+- **Rich**-styled output for keys/JSON; ASCII-only banner + `box.ASCII` for Windows consoles.
+- **Keys security:** `--hide-secret` / `--no-secret`, interactive confirm on TTY unless `-y`.
+- **`doctor`:** TCP connect ms + first `version` round-trip ms (`--no-latency` skips probes).
+- **`broadcast-tx --verbose`:** dumps full P2P frame hex via `wire_debug` on `BitcoinPeer`.
+- **`tx-encode`:** interactive legacy P2PKH builder (`tx_wizard.py`).
+- **Config:** `.btc-pure.yaml` + `BTC_*NETWORK` env; `load_merged_config`.
+- **`cache`:** SQLite UTXO metadata (`~/.btc-pure/cache.sqlite3`).
+- **`btc-pure` / `wizard`:** menu when run with no subcommand.
+- Example: `examples/btc-pure.example.yaml`.
+
+### Next steps
+
+- Optional sync from bitcoind/ZMQ for real UTXO set (large scope).
+
+---
+
 ## 2026-05-06 — Initial repository scaffold
 
 ### What changed

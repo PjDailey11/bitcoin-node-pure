@@ -4,12 +4,15 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from collections.abc import Callable
 
 from bitcoin_node.p2p.constants import TESTNET_MAGIC
 from bitcoin_node.p2p.framing import decode_message_header, encode_message, verify_payload_checksum
 from bitcoin_node.p2p.serialize import build_inv_tx_vector, build_version_payload
 
 LOG = logging.getLogger(__name__)
+
+WireDebugFn = Callable[[str, bytes], None]
 
 
 async def _read_exact(reader: asyncio.StreamReader, n: int) -> bytes:
@@ -25,11 +28,26 @@ async def _read_exact(reader: asyncio.StreamReader, n: int) -> bytes:
 class BitcoinPeer:
     """Minimal outbound peer session."""
 
-    def __init__(self, magic: bytes = TESTNET_MAGIC, *, relay: bool = False) -> None:
+    def __init__(
+        self,
+        magic: bytes = TESTNET_MAGIC,
+        *,
+        relay: bool = False,
+        wire_debug: WireDebugFn | None = None,
+    ) -> None:
         self._magic = magic
         self._relay = relay
+        self._wire_debug = wire_debug
         self._reader: asyncio.StreamReader | None = None
         self._writer: asyncio.StreamWriter | None = None
+
+    def _dbg_send(self, label: str, frame: bytes) -> None:
+        if self._wire_debug:
+            self._wire_debug(f"send {label}", frame)
+
+    def _dbg_recv(self, label: str, frame: bytes) -> None:
+        if self._wire_debug:
+            self._wire_debug(f"recv {label}", frame)
 
     async def connect(self, host: str, port: int, *, timeout: float = 15.0) -> None:
         self._reader, self._writer = await asyncio.wait_for(
@@ -53,7 +71,9 @@ class BitcoinPeer:
 
         async def _run() -> None:
             payload_v = build_version_payload(start_height=start_height, relay=self._relay)
-            self._writer.write(encode_message(self._magic, "version", payload_v))
+            vframe = encode_message(self._magic, "version", payload_v)
+            self._dbg_send("version", vframe)
+            self._writer.write(vframe)
             await self._writer.drain()
 
             saw_peer_version = False
@@ -62,7 +82,9 @@ class BitcoinPeer:
                 cmd, pl = await self._read_next_payload()
                 if cmd == "version":
                     saw_peer_version = True
-                    self._writer.write(encode_message(self._magic, "verack", b""))
+                    aframe = encode_message(self._magic, "verack", b"")
+                    self._dbg_send("verack", aframe)
+                    self._writer.write(aframe)
                     await self._writer.drain()
                 elif cmd == "verack":
                     if saw_peer_version:
@@ -84,13 +106,17 @@ class BitcoinPeer:
         """Announce tx hash (32-byte LE wire-order)."""
         assert self._writer
         body = build_inv_tx_vector([txid_le])
-        self._writer.write(encode_message(self._magic, "inv", body))
+        iframe = encode_message(self._magic, "inv", body)
+        self._dbg_send("inv", iframe)
+        self._writer.write(iframe)
         await self._writer.drain()
 
     async def send_tx(self, raw_tx: bytes) -> None:
         """Best-effort direct tx relay (modern nodes may ignore unsolicited tx)."""
         assert self._writer
-        self._writer.write(encode_message(self._magic, "tx", raw_tx))
+        tframe = encode_message(self._magic, "tx", raw_tx)
+        self._dbg_send("tx", tframe)
+        self._writer.write(tframe)
         await self._writer.drain()
 
     async def drain_ping_pong(self, idle_rounds: int = 3) -> None:
@@ -102,7 +128,9 @@ class BitcoinPeer:
             except TimeoutError:
                 return
             if cmd == "ping":
-                self._writer.write(encode_message(self._magic, "pong", payload))
+                pframe = encode_message(self._magic, "pong", payload)
+                self._dbg_send("pong", pframe)
+                self._writer.write(pframe)
                 await self._writer.drain()
 
     async def _read_next_payload(self) -> tuple[str, bytes]:
@@ -112,5 +140,6 @@ class BitcoinPeer:
             raise ValueError("wrong network magic")
         cmd, ln, chk = decode_message_header(hdr)
         payload = await _read_exact(self._reader, ln)
+        self._dbg_recv(cmd, hdr + payload)
         verify_payload_checksum(payload, chk)
         return cmd, payload

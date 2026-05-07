@@ -1,0 +1,4 @@
+# Copy to `.btc-pure.yaml` in this repo or to `~/.btc-pure.yaml`.
+# Override with env: BTC_NETWORK=testnet
+network: testnet
+peer_limit: 16
