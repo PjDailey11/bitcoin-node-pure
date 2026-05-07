@@ -52,6 +52,39 @@ btc-pure keys
 btc-pure broadcast-tx --network testnet --raw-file tx.hex
 ```
 
+### Full command reference
+
+#### `btc-pure keys`
+
+Generate a new random secp256k1 secret key and print:
+
+- `secret_hex` (32 bytes hex)
+- `pubkey_compressed_hex` (33 bytes hex)
+- `address_mainnet` (legacy P2PKH)
+- `address_testnet` (legacy P2PKH)
+
+```bash
+btc-pure keys
+```
+
+#### `btc-pure broadcast-tx`
+
+Connect to a peer (DNS seed by default), run `version`/`verack`, then send a `tx` message with your raw transaction bytes.
+
+```bash
+btc-pure broadcast-tx \
+  --network testnet \
+  --raw-file tx.hex
+```
+
+Flags:
+
+- `--network {mainnet,testnet}`: defaults to `testnet`
+- `--host <ip-or-hostname>`: bypass DNS seed discovery
+- `--port <int>`: override default port (8333 mainnet / 18333 testnet)
+- `--raw-hex <hex>`: provide raw tx as a hex string
+- `--raw-file <path>`: path to a file containing hex raw tx
+
 ### Broadcasting a raw transaction
 
 Write a hex-encoded legacy (non-segwit) transaction to a file (e.g. `tx.hex`) and run:
@@ -90,6 +123,10 @@ raw_hex = signed.serialize().hex()
 ## Raspberry Pi deployment + Lightning context
 
 See [`docs/RASPBERRY_PI_DEPLOYMENT.md`](docs/RASPBERRY_PI_DEPLOYMENT.md) for Raspberry Pi 5 + SSD guidance and optional **LND + Alby Hub** reading notes.
+
+## Manual
+
+For a longer walkthrough (install → keys → building/signing a legacy tx → broadcasting), see [`MANUAL.md`](MANUAL.md).
 
 ## Tests
 
