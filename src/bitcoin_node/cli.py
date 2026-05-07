@@ -9,7 +9,6 @@ import platform
 import sys
 from pathlib import Path
 
-from bitcoin_node.ascii_art import BITCOIN_ASCII
 from bitcoin_node.cli_helpers import (
     decode_hex,
     print_json,
@@ -113,7 +112,7 @@ def _cmd_keys(args: argparse.Namespace) -> None:
     c = _get_console(args.no_color)
     if c and print_key_material:
         if not args.no_banner:
-            print_banner(c, BITCOIN_ASCII)
+            print_banner(c)
         print_key_material(
             c,
             secret_hex=payload["secret_hex"],
@@ -238,7 +237,7 @@ async def _doctor_latency_probe(
 def _cmd_doctor(args: argparse.Namespace) -> None:
     c = _get_console(args.no_color)
     if c:
-        print_banner(c, BITCOIN_ASCII)
+        print_banner(c)
     peers = _run_async_gather_peers(args.network, args.peer_limit)
     if not peers:
         raise SystemExit("dns: no peers returned (try --network testnet or pass --host/--port)")
@@ -552,7 +551,7 @@ def main() -> None:
     if len(sys.argv) == 1:
         c = _get_console(False)
         if c and print_banner:
-            print_banner(c, BITCOIN_ASCII)
+            print_banner(c)
         _run_interactive_menu(cfg, no_color=False)
         return
 
